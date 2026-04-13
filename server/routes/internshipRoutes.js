@@ -3,7 +3,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const {
   postInternship,
-  getAllInternships
+  getAllInternships,
+  getMyInternships
 } = require("../controllers/internshipController");
 
 const router = express.Router();
@@ -22,6 +23,14 @@ router.get(
   authMiddleware,
   roleMiddleware("student"),
   getAllInternships
+);
+
+// Company views their own internships
+router.get(
+  "/company",
+  authMiddleware,
+  roleMiddleware("company"),
+  getMyInternships
 );
 
 module.exports = router;

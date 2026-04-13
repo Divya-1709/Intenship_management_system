@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Company = require("../models/Company");
 const Internship = require("../models/Internship");
 const Application = require("../models/Application");
+const Payment = require("../models/Payment");
 
 /* ===========================
    ADMIN DASHBOARD DATA
@@ -16,12 +17,28 @@ exports.getDashboardStats = async (req, res) => {
     const totalInternships = await Internship.countDocuments();
     const totalApplications = await Application.countDocuments();
 
+    // Financial Metrics
+    const completedPayments = await Payment.find({ status: "Completed" });
+    
+    let totalRevenue = 0;
+    let stipendsPaid = 0;
+
+    completedPayments.forEach(payment => {
+      if (payment.paymentType === "RegistrationFee") {
+        totalRevenue += payment.amount;
+      } else if (payment.paymentType === "Stipend") {
+        stipendsPaid += payment.amount;
+      }
+    });
+
     res.json({
       totalStudents,
       totalCompanies,
       verifiedCompanies,
       totalInternships,
-      totalApplications
+      totalApplications,
+      totalRevenue,
+      stipendsPaid
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -47,6 +64,21 @@ exports.getAllApplications = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ===========================
+   VIEW ALL STUDENTS
+=========================== */
+
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: "student" }, "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

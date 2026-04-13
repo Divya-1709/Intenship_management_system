@@ -5,6 +5,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const {
   getDashboardStats,
   getAllApplications,
+  getAllStudents,
   getAllInternshipsAdmin
 } = require("../controllers/adminController");
 
@@ -24,6 +25,14 @@ router.get(
   authMiddleware,
   roleMiddleware("admin"),
   getAllApplications
+);
+
+// View all students
+router.get(
+  "/students",
+  authMiddleware,
+  roleMiddleware("admin"),
+  getAllStudents
 );
 
 // View all internships

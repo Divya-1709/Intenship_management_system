@@ -1,13 +1,146 @@
+/* ============================================================
+   Global CSS Variables (defaults to light theme)
+   Overridden by ThemeContext via JS on <html> element
+   ============================================================ */
+:root {
+  --bg-primary: #f9fafb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-inverse: #ffffff;
+  --border-color: #e5e7eb;
+  --border-focus: #4f46e5;
+  --accent-primary: #4f46e5;
+  --accent-primary-hover: #4338ca;
+  --accent-secondary: #059669;
+  --accent-secondary-hover: #047857;
+  --accent-danger: #ef4444;
+  --accent-danger-hover: #dc2626;
+  --accent-warning: #f59e0b;
+  --accent-amber: #d97706;
+  --accent-purple: #8b5cf6;
+  --accent-purple-hover: #7c3aed;
+  --card-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06);
+  --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.12);
+  --modal-bg: rgba(0,0,0,0.5);
+  --input-bg: #ffffff;
+  --tag-bg: #ede9fe;
+  --tag-color: #5b21b6;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --warning-border: #fbbf24;
+  --error-bg: #fee2e2;
+  --error-text: #991b1b;
+  --error-border: #fca5a5;
+  --success-bg: #d1fae5;
+  --success-text: #065f46;
+  --info-bg: #eff6ff;
+  --info-text: #1e40af;
+  --info-border: #bfdbfe;
+  --nav-bg: #ffffff;
+  --nav-border: #e5e7eb;
+  --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #c1c1c1;
+}
+
+/* ============================================================
+   Base Resets & Typography
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+/* ============================================================
+   Smooth theme transitions
+   ============================================================ */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
+}
+
+/* Exclude transitions from animations and transforms */
+*[style*="animation"],
+*[style*="transform"] {
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+/* ============================================================
+   Custom Scrollbar
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.8;
+}
+
+/* ============================================================
+   Focus Styles
+   ============================================================ */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.fade-in       { animation: fadeIn  0.3s ease; }
+.slide-up      { animation: slideUp 0.4s ease; }
+.pulse-anim    { animation: pulse   2s infinite; }
