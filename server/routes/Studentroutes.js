@@ -177,4 +177,36 @@ router.put("/task-status/:taskId", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+const User = require("../models/User");
+const Application = require("../models/Application");
+const Payment = require("../models/Payment");
+
+// Delete student account and all related data
+router.delete("/delete-account", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Delete profile
+    await StudentProfile.deleteOne({ userId });
+    
+    // Delete applications
+    await Application.deleteMany({ studentId: userId });
+    
+    // Delete tasks
+    await Task.deleteMany({ studentId: userId });
+    
+    // Delete payments
+    await Payment.deleteMany({ studentId: userId });
+    
+    // Delete user account
+    await User.findByIdAndDelete(userId);
+    
+    res.json({ message: "Account and associated data successfully deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error during account deletion" });
+  }
+});
+
 module.exports = router;

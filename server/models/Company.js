@@ -21,6 +21,26 @@ const companySchema = new mongoose.Schema({
   documents: {
     type: String   // Cloudinary / file URL
   },
+  companyLogo: {
+    type: String,
+    default: ""
+  },
+  companyBanner: {
+    type: String,
+    default: ""
+  },
+  description: {
+    type: String,
+    default: ""
+  },
+  website: {
+    type: String,
+    default: ""
+  },
+  industry: {
+    type: String,
+    default: ""
+  },
   status: {
     type: String,
     enum: ["Pending", "Verified", "Rejected"],

@@ -12,6 +12,7 @@ const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState(null);
   const [selectedInternship, setSelectedInternship] = useState(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,9 +21,19 @@ const StudentDashboard = () => {
       navigate("/");
       return;
     }
-    checkProfile();
-    fetchInternships();
-    fetchAppliedInternships();
+    
+    // Load all data
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        checkProfile(),
+        fetchInternships(),
+        fetchAppliedInternships()
+      ]);
+      setLoading(false);
+    };
+    
+    loadData();
   }, [navigate]);
 
   const checkProfile = async () => {
@@ -42,7 +53,7 @@ const StudentDashboard = () => {
       const res = await API.get("/internship/all");
       setInternships(res.data);
     } catch (err) {
-      alert("Failed to load internships");
+      console.error("Failed to load internships");
     }
   };
 
@@ -84,7 +95,7 @@ const StudentDashboard = () => {
       if (studentYear < requiredYear) {
         return {
           eligible: false,
-          message: `This internship is for ${requiredYear}${yearMatch[2]} year and above students. You are in ${studentYear}${getYearSuffix(studentYear)} year.`
+          message: `This internship is for ${requiredYear}${yearMatch[2]} year and above. You are in ${studentYear}${getYearSuffix(studentYear)} year.`
         };
       }
     }
@@ -161,246 +172,227 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-[var(--bg-primary)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: "2rem", backgroundColor: "var(--bg-primary)", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", transition: "background-color 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.875rem", fontWeight: "bold", color: "var(--text-primary)" }}>Available Internships</h2>
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <Link to="/profile">
-            <button style={{ 
-              padding: "0.5rem 1rem", 
-              backgroundColor: isProfileComplete ? "#059669" : "#f59e0b", 
-              color: "white", 
-              border: "none", 
-              borderRadius: "0.375rem", 
-              cursor: "pointer", 
-              fontWeight: "600" 
-            }}>
-              {isProfileComplete ? "✓ Profile" : "⚠ Complete Profile"}
-            </button>
-          </Link>
-          <Link to="/smart-match">
-            <button style={{ 
-              padding: "0.5rem 1.25rem", 
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)", 
-              color: "white", 
-              border: "none", 
-              borderRadius: "0.375rem", 
-              cursor: "pointer", 
-              fontWeight: "700",
-              boxShadow: "0 4px 14px rgba(99,102,241,0.4)"
-            }}>
-              🎯 Smart Match
-            </button>
-          </Link>
-          <Link to="/my-application">
-            <button style={{ padding: "0.5rem 1rem", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "0.375rem", cursor: "pointer", fontWeight: "600" }}>View My Applications</button>
-          </Link>
-          <Link to="/tasks">
-  <button style={{ 
-    padding: "0.5rem 1rem", 
-    backgroundColor: "#059669", 
-    color: "white", 
-    border: "none", 
-    borderRadius: "0.375rem", 
-    cursor: "pointer", 
-    fontWeight: "600" 
-  }}>
-    My Tasks
-  </button>
-</Link>
-          <Link to="/student/interviews">
-  <button style={{ 
-    padding: "0.5rem 1rem", 
-    backgroundColor: "#8b5cf6", 
-    color: "white", 
-    border: "none", 
-    borderRadius: "0.375rem", 
-    cursor: "pointer", 
-    fontWeight: "600" 
-  }}>
-    📅 My Interviews
-  </button>
-</Link>
+    <div className="min-h-screen bg-[var(--bg-primary)] font-sans transition-colors duration-300">
+      
+      {/* Navigation Top Bar */}
+      <div className="sticky top-0 z-40 bg-[var(--bg-secondary)]/80 backdrop-blur-md border-b border-[var(--border-color)] px-6 py-4 shadow-sm flex flex-wrap justify-between items-center gap-4">
+        
+        {/* Left Section: Logo & Navigation */}
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">🎓</span>
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              Student Portal
+            </h1>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 items-center">
+            <Link to="/smart-match">
+              <button className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg font-bold shadow-[0_4px_14px_rgba(99,102,241,0.4)] transform hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                <span>🎯</span> Smart Match
+              </button>
+            </Link>
+            <Link to="/my-application">
+              <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+                My Applications
+              </button>
+            </Link>
+            <Link to="/tasks">
+              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors">
+                📝 Tasks
+              </button>
+            </Link>
+            <Link to="/student/interviews">
+              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
+                📅 Interviews
+              </button>
+            </Link>
+          </div>
+        </div>
+        
+        {/* Right Section: Utilities */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="hidden md:block h-8 w-px bg-[var(--border-color)] mx-1"></div>
+          
           <Link to="/settings">
-            <button style={{ padding: "0.5rem 1rem", backgroundColor: "var(--bg-secondary)", color: "var(--text-secondary)", border: "1px solid var(--border-color)", borderRadius: "0.375rem", cursor: "pointer", fontWeight: "600" }}>⚙️ Settings</button>
+            <button className="p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-full transition-colors" title="Settings">
+              ⚙️
+            </button>
           </Link>
-          <button onClick={handleLogout} style={{ padding: "0.5rem 1rem", backgroundColor: "var(--accent-danger)", color: "white", border: "none", borderRadius: "0.375rem", cursor: "pointer", fontWeight: "600" }}>Logout</button>
+          <Link to="/profile">
+            <button className={`p-2 text-white rounded-full transition-colors shadow-sm ${isProfileComplete ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-500 hover:bg-amber-600 animate-pulse'}`} title="Profile">
+              👤
+            </button>
+          </Link>
+          <button onClick={handleLogout} className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium ml-2 transition-colors">
+            Exit
+          </button>
         </div>
       </div>
 
-      {!isProfileComplete && (
-        <div style={{ backgroundColor: "var(--warning-bg)", padding: "1rem", borderRadius: "0.5rem", marginBottom: "1.5rem", border: "1px solid var(--warning-border)" }}>
-          <p style={{ color: "var(--warning-text)", fontSize: "0.875rem" }}>
-            <strong>Action Required:</strong> Please complete your profile to apply for internships. 
-            <Link to="/profile" style={{ color: "#4f46e5", marginLeft: "0.5rem", fontWeight: "600", textDecoration: "underline" }}>
-              Complete Profile Now →
-            </Link>
-          </p>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h2 className="text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">Available Opportunities</h2>
+            <p className="text-[var(--text-muted)] mt-1">Discover and act on internships that match your abilities.</p>
+          </div>
         </div>
-      )}
 
-      {internships.length === 0 ? (
-        <p style={{ color: "var(--text-muted)" }}>No internships available</p>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
-          {internships.map((internship) => {
-            const eligibilityCheck = studentProfile ? checkEligibility(internship) : { eligible: true };
-            
-            return (
-              <div
-                key={internship._id}
-                style={{
-                  backgroundColor: "var(--bg-secondary)",
-                  padding: "1.5rem",
-                  borderRadius: "0.5rem",
-                  boxShadow: "var(--card-shadow)",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  border: !eligibilityCheck.eligible ? "2px solid var(--error-border)" : "1px solid var(--border-color)"
-                }}
-              >
+        {/* Warning Alert if profile incomplete */}
+        {!isProfileComplete && (
+          <div className="mb-8 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-amber-500 text-2xl mr-3">⚠️</span>
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "0.5rem" }}>
-                    <h3 style={{ fontSize: "1.25rem", fontWeight: "600", color: "var(--text-primary)" }}>{internship.title}</h3>
+                  <h3 className="text-amber-800 font-bold">Incomplete Profile</h3>
+                  <p className="text-amber-700 text-sm mt-0.5">You cannot apply to any internships until your profile is fully set up.</p>
+                </div>
+              </div>
+              <Link to="/profile" className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-sm transition-colors text-sm">
+                Complete Now →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {internships.length === 0 ? (
+          <div className="text-center py-20 bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-color)] shadow-sm">
+            <div className="text-6xl mb-4 opacity-50">📉</div>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">No Internships Yet</h3>
+            <p className="text-[var(--text-muted)]">Companies haven't posted any opportunities at the moment. Check back soon!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {internships.map((internship) => {
+              const eligibilityCheck = studentProfile ? checkEligibility(internship) : { eligible: true };
+              const isApplied = appliedInternships.has(internship._id);
+              
+              return (
+                <div
+                  key={internship._id}
+                  className={`bg-[var(--bg-secondary)] rounded-2xl p-6 shadow-[var(--card-shadow)] hover:shadow-lg border flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 ${
+                    !eligibilityCheck.eligible ? "border-rose-300 dark:border-rose-800/50 opacity-90" : "border-[var(--border-color)]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-bold text-[var(--text-primary)] leading-tight">{internship.title}</h3>
+                      {!eligibilityCheck.eligible && (
+                        <span className="px-2.5 py-1 bg-rose-100 text-rose-800 text-xs font-bold rounded flex-shrink-0">
+                          Not Eligible
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="bg-[var(--bg-tertiary)] p-1.5 rounded text-sm text-[var(--text-secondary)]">🏢</span>
+                      <span className="font-medium text-[var(--text-secondary)]">{internship.companyId?.companyName}</span>
+                    </div>
+                    
+                    <p className="text-[var(--text-muted)] text-sm mb-5 line-clamp-3 leading-relaxed">
+                      {internship.description}
+                    </p>
+                    
+                    {/* Internship Type Badges */}
+                    {internship.internshipType && internship.internshipType !== "Unpaid" && (
+                      <div className="mb-4">
+                        {internship.internshipType === "FeeRequired" && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border border-orange-200">
+                            💰 Fee: ₹{internship.registrationFee?.toLocaleString()}
+                          </span>
+                        )}
+                        {internship.internshipType === "StipendBased" && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200">
+                            💵 Stipend: ₹{internship.stipendAmount?.toLocaleString()}/mo
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="bg-[var(--bg-tertiary)] rounded-xl p-4 mb-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[var(--text-muted)]">Duration:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{internship.duration}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[var(--text-muted)]">Stipend:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{internship.stipend}</span>
+                      </div>
+                      <div className="pt-2 mt-2 border-t border-[var(--border-color)] text-sm">
+                        <span className="text-[var(--text-muted)] block mb-1">Eligibility:</span>
+                        <span className="font-medium text-[var(--text-secondary)] text-xs leading-snug block">
+                          {internship.eligibility || "Open to all"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Alerts */}
+                    {eligibilityCheck.warning && (
+                      <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-lg mb-4">
+                        <p className="text-amber-800 text-xs font-medium flex items-start gap-1.5">
+                          <span className="mt-0.5 text-[0.6rem]">⚠️</span> {eligibilityCheck.warning}
+                        </p>
+                      </div>
+                    )}
+
                     {!eligibilityCheck.eligible && (
-                      <span style={{ 
-                        fontSize: "0.75rem", 
-                        backgroundColor: "#fee2e2", 
-                        color: "#991b1b", 
-                        padding: "0.25rem 0.5rem", 
-                        borderRadius: "0.25rem",
-                        fontWeight: "600"
-                      }}>
-                        Not Eligible
-                      </span>
+                      <div className="bg-rose-50 border border-rose-200 p-2.5 rounded-lg mb-4">
+                        <p className="text-rose-800 text-xs font-medium flex items-start gap-1.5">
+                          <span className="mt-0.5 text-[0.6rem]">❌</span> {eligibilityCheck.message}
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>{internship.description}</p>
-                  
-                  {/* Internship Type Badge */}
-                  {internship.internshipType && internship.internshipType !== "Unpaid" && (
-                    <div style={{ marginBottom: "0.75rem" }}>
-                      {internship.internshipType === "FeeRequired" && (
-                        <span style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.3rem",
-                          padding: "0.35rem 0.75rem",
-                          borderRadius: "0.5rem",
-                          fontSize: "0.75rem",
-                          fontWeight: "700",
-                          background: "linear-gradient(135deg, #fff7ed, #ffedd5)",
-                          color: "#c2410c",
-                          border: "1px solid #fed7aa"
-                        }}>
-                          💰 Registration Fee: ₹{internship.registrationFee?.toLocaleString()}
-                        </span>
-                      )}
-                      {internship.internshipType === "StipendBased" && (
-                        <span style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.3rem",
-                          padding: "0.35rem 0.75rem",
-                          borderRadius: "0.5rem",
-                          fontSize: "0.75rem",
-                          fontWeight: "700",
-                          background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-                          color: "#15803d",
-                          border: "1px solid #bbf7d0"
-                        }}>
-                          💵 Stipend: ₹{internship.stipendAmount?.toLocaleString()}/month
-                        </span>
-                      )}
-                    </div>
-                  )}
 
-                  <div style={{ marginBottom: "1rem" }}>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}><strong>Company:</strong> {internship.companyId?.companyName}</p>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}><strong>Duration:</strong> {internship.duration}</p>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}><strong>Stipend:</strong> {internship.stipend}</p>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-                      <strong>Eligibility:</strong> {internship.eligibility || "N/A"}
-                    </p>
-                  </div>
-
-                  {eligibilityCheck.warning && (
-                    <div style={{ 
-                      backgroundColor: "#fef3c7", 
-                      padding: "0.5rem", 
-                      borderRadius: "0.375rem", 
-                      marginBottom: "0.5rem",
-                      border: "1px solid #fbbf24"
-                    }}>
-                      <p style={{ color: "#92400e", fontSize: "0.75rem", margin: 0 }}>
-                        ⚠ {eligibilityCheck.warning}
-                      </p>
-                    </div>
-                  )}
-
-                  {!eligibilityCheck.eligible && (
-                    <div style={{ 
-                      backgroundColor: "#fee2e2", 
-                      padding: "0.5rem", 
-                      borderRadius: "0.375rem", 
-                      marginBottom: "0.5rem",
-                      border: "1px solid #fca5a5"
-                    }}>
-                      <p style={{ color: "#991b1b", fontSize: "0.75rem", margin: 0 }}>
-                        ✗ {eligibilityCheck.message}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => handleApplyClick(internship)}
-                  disabled={appliedInternships.has(internship._id) || !isProfileComplete}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    backgroundColor: appliedInternships.has(internship._id) 
-                      ? "#9ca3af" 
+                  {/* Apply Button */}
+                  <button
+                    onClick={() => handleApplyClick(internship)}
+                    disabled={isApplied || !isProfileComplete || !eligibilityCheck.eligible}
+                    className={`mt-4 w-full py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                      isApplied
+                        ? "bg-emerald-100 text-emerald-700 border border-emerald-200 opacity-90 cursor-default"
+                        : !isProfileComplete || !eligibilityCheck.eligible
+                        ? "bg-[var(--bg-tertiary)] text-[var(--text-muted)] cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-indigo-500/30"
+                    }`}
+                  >
+                    {isApplied 
+                      ? (<span>✓ Applied {internship.internshipType === "FeeRequired" && " (Pay Later)"}</span>)
                       : !isProfileComplete
-                      ? "#d1d5db"
+                      ? "Complete Profile to Apply"
                       : !eligibilityCheck.eligible
-                      ? "#9ca3af"
-                      : "#4f46e5",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "0.375rem",
-                    cursor: appliedInternships.has(internship._id) || !isProfileComplete || !eligibilityCheck.eligible ? "not-allowed" : "pointer",
-                    fontWeight: "500",
-                    marginTop: "1rem",
-                  }}
-                >
-                  {appliedInternships.has(internship._id) 
-                    ? (internship.internshipType === "FeeRequired" ? "Applied (Pay in 'My Applications' after approval)" : "Applied")
-                    : !isProfileComplete
-                    ? "Complete Profile First"
-                    : !eligibilityCheck.eligible
-                    ? "Not Eligible"
-                    : "Apply Now"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                      ? "Not Eligible"
+                      : "Apply Now →"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-      {showApplicationModal && selectedInternship && (
-        <InternshipApplicationModal
-          internship={selectedInternship}
-          studentProfile={studentProfile}
-          onClose={() => {
-            setShowApplicationModal(false);
-            setSelectedInternship(null);
-          }}
-          onSubmit={handleApplicationSubmit}
-        />
-      )}
+        {showApplicationModal && selectedInternship && (
+          <InternshipApplicationModal
+            internship={selectedInternship}
+            studentProfile={studentProfile}
+            onClose={() => {
+              setShowApplicationModal(false);
+              setSelectedInternship(null);
+            }}
+            onSubmit={handleApplicationSubmit}
+          />
+        )}
+      </div>
     </div>
   );
 };

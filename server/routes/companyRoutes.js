@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const Company = require("../models/Company");
 const User = require("../models/User");
 const StudentProfile = require("../models/Studentprofilemodel");
@@ -7,6 +10,32 @@ const Task = require("../models/Task");
 const Application = require("../models/Application");
 const nodemailer = require("nodemailer");
 const authMiddleware = require("../middleware/authMiddleware");
+
+// Multer storage config for company images
+const uploadDir = path.join(__dirname, "..", "uploads", "company-images");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const uniqueName = `${req.user.id}_${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp|svg/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    if (ext && mime) return cb(null, true);
+    cb(new Error("Only image files are allowed"));
+  }
+});
 
 // Register company details
 router.post("/register", authMiddleware, async (req, res) => {
@@ -314,6 +343,71 @@ router.put("/review-task/:taskId", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get current company's profile
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const company = await Company.findOne({ userId: req.user.id });
+    if (!company) {
+      return res.status(404).json({ message: "Company profile not found" });
+    }
+    res.json(company);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update company profile (description, website, industry, logo, banner)
+router.put("/update-profile", authMiddleware, async (req, res) => {
+  try {
+    const { description, website, industry, companyLogo, companyBanner } = req.body;
+    const company = await Company.findOne({ userId: req.user.id });
+    
+    if (!company) {
+      return res.status(404).json({ message: "Company profile not found" });
+    }
+    
+    if (description !== undefined) company.description = description;
+    if (website !== undefined) company.website = website;
+    if (industry !== undefined) company.industry = industry;
+    if (companyLogo !== undefined) company.companyLogo = companyLogo;
+    if (companyBanner !== undefined) company.companyBanner = companyBanner;
+    
+    await company.save();
+    res.json({ message: "Profile updated successfully", company });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Upload company image (logo or banner)
+router.post("/upload-image", authMiddleware, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" });
+    }
+    
+    const imageUrl = `/uploads/company-images/${req.file.filename}`;
+    const imageType = req.body.type || "logo"; // "logo" or "banner"
+    
+    const company = await Company.findOne({ userId: req.user.id });
+    if (company) {
+      if (imageType === "banner") {
+        company.companyBanner = imageUrl;
+      } else {
+        company.companyLogo = imageUrl;
+      }
+      await company.save();
+    }
+    
+    res.json({ message: "Image uploaded successfully", imageUrl, imageType });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to upload image" });
   }
 });
 
